@@ -13,7 +13,6 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\WpOrderController;
 use App\Http\Controllers\OrderController;
 
-
 // Route::get('/', [HomeController::class, 'welcome'])->name('home');
 Route::get('/', [AdminController::class, 'dashboard'])->middleware(['auth', 'verified']);
 
@@ -39,9 +38,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::post('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
 
+    Route::get('/orders/{order}/download', [OrderController::class, 'download'])->name('orders.download'); // add
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy'); // add
+
     // WooComerce
-    Route::get('/wp/orders-live', [WpOrderController::class, 'wpOrderLive'])->name('wp.orders-live');
-    Route::post('/wp/orders-sync', [WpOrderController::class, 'syncOrders'])->name('wp.orders-sync');
+    Route::get('/wp/orders-live', [OrderController::class, 'wpOrderLive'])->name('wp.orders-live');
+    Route::post('/wp/orders-sync', [OrderController::class, 'syncWpOrders'])->name('wp.orders-sync');
 
     // Store Routes
     Route::get('/stores', [StoreController::class, 'index'])->name('stores.index');

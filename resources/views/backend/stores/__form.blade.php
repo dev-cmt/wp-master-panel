@@ -25,6 +25,11 @@
         </div>
 
         <div class="col-md-12 mb-2">
+            <label class="form-label">Custom Secret</label>
+            <input type="text" name="custom_secret" class="form-control">
+        </div>
+
+        <div class="col-md-12 mb-2">
             <label class="form-label">Status</label>
             <select name="status" class="form-select">
                 <option value="1">Active</option>

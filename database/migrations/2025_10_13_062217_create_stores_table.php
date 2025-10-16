@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('base_url')->nullable(); // Base URL of the store
             $table->string('api_key')->nullable(); // WooCommerce API key
             $table->string('api_secret')->nullable(); // WooCommerce API secret
-            $table->string('ep_order_store')->nullable(); // Endpoint to create order
+            $table->string('custom_secret')->nullable(); // WooCommerce custom secret
+            $table->string('ep_order_create')->nullable(); // Endpoint to create order
             $table->string('ep_order_update')->nullable(); // Endpoint to update order
             $table->string('ep_order_status')->nullable(); // Endpoint to check order status
             $table->string('ep_order_delete')->nullable(); // Endpoint to delete order

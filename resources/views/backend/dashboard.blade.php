@@ -18,7 +18,7 @@
     <!-- Start::row-1: Revenues / Staff / Customers / Products -->
     <div class="row">
         @php
-            $totalRevenues  = DB::table('wp_orders')->sum('total');
+            $totalRevenues  = DB::table('orders')->sum('total');
             $totalStaffs    = DB::table('users')->where('status', true)->count();
             $totalCustomers = DB::table('users')->where('status', false)->count();
             $totalProducts  = DB::table('products')->count();
@@ -77,14 +77,14 @@
     <div class="row">
         @php
             // Get counts grouped by numeric status
-            $orderCounts = DB::table('wp_orders')
+            $orderCounts = DB::table('orders')
                 ->select('status', DB::raw('COUNT(*) as total'))
                 ->groupBy('status')
                 ->pluck('total', 'status')
                 ->toArray();
 
-            // Status mapping with icon & color
-            $statuses = [
+            // Status mapping for dashboard cards
+            $statusCards = [
                 0 => ['title' => 'Hold', 'icon' => 'bi-pause-circle', 'color' => 'bg-info'],
                 1 => ['title' => 'Delivered', 'icon' => 'bi-check2-circle', 'color' => 'bg-success'],
                 2 => ['title' => 'Processing', 'icon' => 'bi-arrow-repeat', 'color' => 'bg-secondary'],
@@ -104,14 +104,14 @@
                 16 => ['title' => 'Lost', 'icon' => 'bi-exclamation-circle', 'color' => 'bg-secondary'],
             ];
 
-            $totalOrders = DB::table('wp_orders')->count();
+            $totalOrders = DB::table('orders')->count();
         @endphp
 
-        {{-- Total Orders Card --}}
-        <div class="col-md-2">
+        <!-- Total Orders Card -->
+        <div class="col-lg-2 col-md-3 col-sm-4">
             <a href="{{ route('orders.index') }}" class="text-decoration-none text-dark">
                 <div class="card custom-card mb-2">
-                    <div class="card-body">
+                    <div class="card-body p-2">
                         <div class="d-flex align-items-top">
                             <div class="me-3">
                                 <span class="avatar avatar-lg bg-primary">
@@ -120,7 +120,7 @@
                             </div>
                             <div>
                                 <p class="mb-1 text-muted">Total Orders</p>
-                                <h5 class="fw-semibold">{{ $totalOrders }}</h5>
+                                <h5 class="mb-0 fw-semibold">{{ $totalOrders }}</h5>
                             </div>
                         </div>
                     </div>
@@ -128,12 +128,12 @@
             </a>
         </div>
 
-        {{-- Status-wise Cards --}}
-        @foreach($statuses as $status => $data)
-            <div class="col-md-2">
+        <!-- Status-wise Cards -->
+        @foreach($statusCards as $status => $data)
+            <div class="col-lg-2 col-md-3 col-sm-4">
                 <a href="{{ route('orders.index', ['status' => $status]) }}" class="text-decoration-none text-dark">
                     <div class="card custom-card mb-2">
-                        <div class="card-body">
+                        <div class="card-body p-2">
                             <div class="d-flex align-items-top">
                                 <div class="me-3">
                                     <span class="avatar avatar-lg {{ $data['color'] }}">
@@ -142,7 +142,7 @@
                                 </div>
                                 <div>
                                     <p class="mb-1 text-muted">{{ $data['title'] }}</p>
-                                    <h5 class="fw-semibold">{{ $orderCounts[$status] ?? 0 }}</h5>
+                                    <h5 class="mb-0 fw-semibold">{{ $orderCounts[$status] ?? 0 }}</h5>
                                 </div>
                             </div>
                         </div>

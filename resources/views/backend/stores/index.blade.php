@@ -74,6 +74,7 @@
                                         data-base_url="{{ $store->base_url }}"
                                         data-api_key="{{ $store->api_key }}"
                                         data-api_secret="{{ $store->api_secret }}"
+                                        data-custom_secret="{{ $store->custom_secret }}"
                                         data-ep_order_store="{{ $store->ep_order_store }}"
                                         data-ep_order_update="{{ $store->ep_order_update }}"
                                         data-ep_order_status="{{ $store->ep_order_status }}"
@@ -171,6 +172,7 @@
         $('input[name="base_url"]').val($(this).data('base_url'));
         $('input[name="api_key"]').val($(this).data('api_key'));
         $('input[name="api_secret"]').val($(this).data('api_secret'));
+        $('input[name="custom_secret"]').val($(this).data('custom_secret'));
         $('input[name="ep_order_store"]').val($(this).data('ep_order_store'));
         $('input[name="ep_order_update"]').val($(this).data('ep_order_update'));
         $('input[name="ep_order_status"]').val($(this).data('ep_order_status'));
