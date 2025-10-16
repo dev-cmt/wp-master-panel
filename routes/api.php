@@ -27,3 +27,10 @@ Route::post('/token/check-courier', [FrodlyController::class, 'checkManualy'])
  * --------------------------------------------------------
  */
 Route::post('/wp-orders/webhook', [WebhookController::class, 'orderStore']);
+
+
+/**--------------------------------------------------------
+ * Order Receive API
+ * --------------------------------------------------------
+ */
+Route::post('/orders/store', [OrderApiController::class, 'orderStore']);

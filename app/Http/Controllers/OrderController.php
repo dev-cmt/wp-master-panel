@@ -187,7 +187,6 @@ class OrderController extends Controller
                                     'sku'          => $item['sku'] ?? null,
                                     'description'  => 'Imported from WooCommerce',
                                     'price'        => $item['price'] ?? 0,
-                                    'stock_qty'    => 0,
                                     'image'        => $item['image']['src'] ?? null,
                                     'attribute'    => json_encode($item['attributes'] ?? []),
                                     'status'       => true,

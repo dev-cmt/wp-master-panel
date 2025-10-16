@@ -39,8 +39,8 @@
                 <li class="slide">
                     <a href="{{ route('orders.index') }}"
                         class="side-menu__item {{ Request::is('orders*') ? 'active' : '' }}">
-                        <i class="bx bxl-wordpress side-menu__icon"></i>
-                        <span class="side-menu__label">WP Orders</span>
+                        <i class="bx bxl-store side-menu__icon"></i>
+                        <span class="side-menu__label">Orders</span>
                     </a>
                 </li>
 
@@ -48,7 +48,7 @@
                 <li class="slide">
                     <a href="{{ route('stores.index') }}"
                         class="side-menu__item {{ Request::is('stores*') ? 'active' : '' }}">
-                        <i class="bx bx-store side-menu__icon"></i>
+                        <i class="bx bx-cart-alt side-menu__icon"></i>
                         <span class="side-menu__label">Store</span>
                     </a>
                 </li>

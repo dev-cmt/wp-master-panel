@@ -16,27 +16,11 @@ class WebhookController extends Controller
 {
     public function orderStore(Request $request)
     {
-        // Verify signature
-        $secret = $request->header('x-wc-webhook-signature');
-        $payload = $request->getContent();
-        $webhookSecret = 'wC4x8pR9qT2vS6mY3nL7kZ1bD5fG8hJ0';
-
-        $hash = base64_encode(hash_hmac('sha256', $payload, $webhookSecret, true));
-
-        if (!hash_equals($hash, $secret)) {
-            Log::error('Invalid webhook signature');
-            return response()->json(['success' => false, 'message' => 'Invalid signature'], 403);
-        }
-
         $data = $request->all();
-        /**-----------------------------------------------------
-         * No Change Top Code
-         * -----------------------------------------------------
-         */
-        // Get current website's base URL safely
-        // $currentBaseUrl = $request->getSchemeAndHttpHost(); // e.g. https://skytechsolve.com
-        $wp_base_url = $data['_links']['collection'][0]['href'];
-        $domain = parse_url($wp_base_url, PHP_URL_HOST); // e.g. skytechsolve.com
+
+        // Safely get domain from payload
+        $wp_base_url = $data['_links']['collection'][0]['href'] ?? null;
+        $domain = $wp_base_url ? parse_url($wp_base_url, PHP_URL_HOST) : null; // e.g. skytechsolve.com
 
         $store = Store::where('base_url', 'like', "%$domain%")->first();
 
@@ -45,11 +29,31 @@ class WebhookController extends Controller
             return response()->json(['success' => false, 'message' => 'Store not found'], 404);
         }
 
-        $invoiceId = ($store->prefix ?? '') . '-' . ($data['number'] ?? 'UNKNOWN');
+        /**-----------------------------------------------------
+         * Security Perpose Use This Code
+         * -----------------------------------------------------
+         */
+        // Verify signature
+        // $secret = $request->header('x-wc-webhook-signature');
+        // $payload = $request->getContent();
+        // $webhookSecret = $store->custom_secret ?? 'wC4x8pR9qT2vS6mY3nL7kZ1bD5fG8hJ0';
 
+        // $hash = base64_encode(hash_hmac('sha256', $payload, $webhookSecret, true));
+
+        // if (!hash_equals($hash, $secret)) {
+        //     Log::error('Invalid webhook signature');
+        //     return response()->json(['success' => false, 'message' => 'Invalid signature'], 403);
+        // }
 
         DB::beginTransaction();
         try {
+            if (empty($data['number'])) {
+                Log::warning('Order number missing', ['payload' => $data]);
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Order number missing'], 400);
+            }
+
+            $invoiceId = ($store->prefix ?? '') . '-' . ($data['number'] ?? 'UNKNOWN');
             // Create order
             $order = Order::create([
                 'store_id'      => $store->id ?? null,

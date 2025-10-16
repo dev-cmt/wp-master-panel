@@ -18,9 +18,14 @@
         <div class="card-body p-0">
             <div class="card-header justify-content-between">
                 <div class="card-title">Order List</div>
-                <button type="button" id="sync-btn" class="btn btn-primary btn-sm">
-                    <i class="fa fa-sync-alt me-1"></i> Sync Now
-                </button>
+                <div>
+                    <a href="{{ route('orders.index') }}" class="btn btn-danger btn-sm">
+                        <i class="fa fa-sync-alt me-1"></i> Back
+                    </a>
+                    <button type="button" id="sync-btn" class="btn btn-primary btn-sm">
+                        <i class="fa fa-sync-alt me-1"></i> Sync Now
+                    </button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
@@ -103,26 +108,22 @@
 
     @push('js')
     <script>
-        document.getElementById('sync-btn').addEventListener('click', function() {
-            this.disabled = true;
-            this.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Syncing...';
+        $(document).ready(function() {
+            $('#sync-btn').on('click', function() {
+                const btn = $(this);
+                const urlParams = new URLSearchParams(window.location.search);
+                const storeId = urlParams.get('storeId');
+                if (!storeId) { alert('Please select a store first!'); $('#storeId').focus(); return; }
 
-            fetch('{{ route('wp.orders-sync') }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                location.reload();
-            })
-            .catch(err => alert('Error: ' + err.message))
-            .finally(() => {
-                this.disabled = false;
-                this.innerHTML = '<i class="fa fa-sync-alt me-1"></i> Sync Now';
+                btn.prop('disabled', true).html('<span class="spinner-grow spinner-grow-sm align-middle" role="status"></span> Syncing...');
+                $.ajax({
+                    url: '{{ route("wp.orders-sync") }}',
+                    type: 'POST',
+                    data: {_token: '{{ csrf_token() }}', store_id: storeId},
+                    success: function(response) { alert(response.message); location.reload(); },
+                    error: function(xhr) { alert('Error: ' + xhr.responseText); },
+                    complete: function() { btn.prop('disabled', false).html('<i class="fa fa-sync-alt me-1"></i> Sync Now'); }
+                });
             });
         });
     </script>

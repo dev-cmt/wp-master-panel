@@ -174,7 +174,7 @@
                                 $storeName = $order->store?->name ?? 'Unknown';
 
                                 // Dynamic source badge color
-                                $sourceText = $order->source ?? 'Unknown';
+                                $sourceText = ucfirst($order->source ?? 'Unknown');
                                 $hash = crc32($sourceText);
                                 $sourceColor = $badgeColors[$hash % count($badgeColors)];
                             @endphp
@@ -186,7 +186,6 @@
                                 <td>
                                     <strong>Name:</strong> {{ $order->customer_name ?? '' }}<br>
                                     <strong>Phone:</strong><small class="text-muted"><i class="fa fa-phone me-1"></i>{{ $order->phone ?? 'N/A' }}</small><br>
-                                    <strong>Email:</strong><small class="text-muted"><i class="fa fa-envelope me-1"></i>{{ $order->email ?? 'N/A' }}</small><br>
                                     <strong>Source:</strong><span class="badge bg-{{ $sourceColor }}">{{ $sourceText }}</span>
                                 </td>
                                 <td>
@@ -219,7 +218,11 @@
                                 <td>
                                     <ul class="list-unstyled mb-0">
                                         @foreach($order->items as $item)
-                                            <li><i class="bi bi-box-seam me-1"></i>{{ $item->quantity }} × {{ $item->product->product_name }}</li>
+                                            <li class="d-flex justify-content-start align-items-center mb-1">
+                                                <span class="avatar avatar-sm">
+                                                    <img src="{{$item->product->image ?? null }}" alt="">
+                                                </span>
+                                                {{ $item->quantity }} × {{ $item->product->product_name }}</li>
                                         @endforeach
                                     </ul>
                                 </td>
