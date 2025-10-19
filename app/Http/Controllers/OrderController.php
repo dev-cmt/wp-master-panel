@@ -8,35 +8,70 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderAssign;
 use App\Models\Product;
 use App\Models\Store;
+use App\Models\User;
 use Carbon\Carbon;
+use PDF;
 
 class OrderController extends Controller
 {
     public function index(Request $request)
     {
         $stores = Store::where('status', true)->get();
-        $totalOrders = Order::count();
-        $orderCounts = Order::select('status', DB::raw('COUNT(*) as total'))
-                    ->groupBy('status')
-                    ->pluck('total', 'status')
-                    ->map(fn($count) => (int) $count)
-                    ->toArray();
-
         // Query orders
         $query = Order::query();
+
         if ($request->has('status') && $request->status !== '') {
             $query->where('status', $request->status);
         }
         if ($request->filled('storeId') && is_numeric($request->storeId)) {
             $query->where('store_id', $request->storeId);
         }
-        $orders = $query->with('store')->orderBy('order_date', 'desc')->paginate(10);
+        // Search by customer or product name
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                // Search in Orders fields
+                $q->where('invoice_no', 'like', "%{$search}%")
+                ->orWhere('customer_name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%");
 
-        return view('backend.orders.index', compact('orders', 'stores', 'orderCounts', 'totalOrders'));
+                // Search in related products
+                $q->orWhereHas('items.product', function($q2) use ($search) {
+                    $q2->where('product_name', 'like', "%{$search}%");
+                });
+            });
+        }
+        // Count total orders after filters
+        $totalOrders = $query->count();
+        // Get order counts by status after filters
+        $orderCounts = (clone $query)
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->map(fn($count) => (int) $count)
+            ->toArray();
+
+        $orders = $query->with('store')->orderBy('order_date', 'desc')->paginate(10);
+        $employees = User::where('status', true)->get();
+
+        return view('backend.orders.index', compact('orders', 'stores', 'orderCounts', 'totalOrders', 'employees'));
     }
 
+    public function downloadInvoice(Order $order)
+    {
+        $order->load(['items.product']); // eager load relationships
+
+        // If you want PDF download
+        $pdf = PDF::loadView('backend.orders.single-invoice', compact('order'));
+        return $pdf->download('Invoice-'.$order->invoice_no.'.pdf');
+
+        // Or open in new tab for printing
+        // return view('backend.orders.single-invoice', compact('order'));
+    }
     public function destroy(Order $order)
     {
         $order->delete();
@@ -54,6 +89,72 @@ class OrderController extends Controller
         return back()->with('success', 'Order status updated successfully!');
     }
 
+
+
+    /**-------------------------------------------------------------
+     * Bulk Update & Print
+     * -------------------------------------------------------------
+     */
+    // Bulk Status Update
+    public function statusBulkUpdate(Request $request)
+    {
+        $request->validate([
+            'status' => 'required|integer',
+            'order_ids' => 'required|array',
+        ]);
+
+        Order::whereIn('id', $request->order_ids)->update(['status' => $request->status]);
+
+        return response()->json(['message' => 'Status updated successfully!']);
+    }
+
+    // Bulk Assign
+    public function orderBulkAssign(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:users,id',
+            'order_ids' => 'required|array',
+        ]);
+
+        foreach ($request->order_ids as $orderId) {
+            OrderAssign::updateOrCreate(
+                ['order_id' => $orderId],
+                ['employee_id' => $request->employee_id]
+            );
+        }
+
+        return response()->json(['message' => 'Orders assigned successfully!']);
+    }
+
+    // Bulk Delete
+    public function orderBulkDelete(Request $request)
+    {
+        $request->validate(['order_ids' => 'required|array']);
+        Order::whereIn('id', $request->order_ids)->delete();
+
+        return response()->json(['message' => 'Selected orders deleted successfully!']);
+    }
+
+
+    public function printBulkInvoice(Request $request)
+    {
+        $orderIds = explode(',', $request->query('order_ids'));
+        $orders = Order::with(['items.product'])->whereIn('id', $orderIds)->get();
+
+        if ($orders->isEmpty()) {
+            return back()->with('error', 'No orders found for invoice printing.');
+        }
+
+        return view('backend.orders.bulk-invoice', compact('orders'));
+    }
+
+    public function printBulkLabel(Request $request)
+    {
+        $orderIds = explode(',', $request->query('order_ids'));
+        $orders = Order::with(['items.product'])->whereIn('id', $orderIds)->get();
+
+        return view('backend.orders.bulk-label', compact('orders'));
+    }
 
 
     /**-------------------------------------------------------------
@@ -172,7 +273,7 @@ class OrderController extends Controller
                             'email'         => $data['billing']['email'] ?? null,
                             'phone'         => $data['billing']['phone'] ?? null,
                             'total'         => $data['total'] ?? 0,
-                            'source'        => 'Wordpress',
+                            'source'        => 'WP Direct',
                             'shipping'      => $data['shipping'] ?? [],
                             'order_data'    => $data,
                             'status'        => $status,
@@ -199,6 +300,15 @@ class OrderController extends Controller
                                 'quantity'   => $item['quantity'] ?? 0,
                                 'price'      => $item['price'] ?? 0,
                                 'subtotal'   => $item['subtotal'] ?? 0,
+                            ]);
+                        }
+                        // Assign to a random active employee
+                        $randomEmployee = User::where('status', true)->inRandomOrder()->first();
+
+                        if ($randomEmployee) {
+                            OrderAssign::create([
+                                'order_id' => $order->id,
+                                'employee_id' => $randomEmployee->id,
                             ]);
                         }
 
@@ -228,6 +338,5 @@ class OrderController extends Controller
             ]);
         }
     }
-
 
 }

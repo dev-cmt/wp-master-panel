@@ -45,21 +45,44 @@
     @endphp
 
     <!-- Page Header -->
-    <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
-        <h1 class="page-title fw-semibold fs-18 mb-0">Orders Management</h1>
-        <div class="col-md-2 col-12">
-            <form action="{{ route('orders.index') }}" method="GET">
-                <select class="form-control" name="storeId" id="storeId" onchange="this.form.submit()">
-                    <option value="">All Store</option>
-                    @foreach ($stores as $store)
-                        <option value="{{ $store->id }}" {{ request('storeId') == $store->id ? 'selected' : '' }}>
-                            {{ $store->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </form>
-        </div>
+    <div class="d-flex flex-wrap align-items-center justify-content-between my-4 page-header-breadcrumb">
+        <h1 class="page-title fw-semibold fs-18 mb-2 mb-md-0">Orders By Product</h1>
+
+        <form action="" method="GET" class="d-flex gap-2 align-items-center">
+            <!-- Employee Dropdown -->
+            <select name="product_id" class="form-select form-select-sm">
+                <option value="">-- Product --</option>
+                @foreach ($products as $pro)
+                    <option value="{{ $pro->id }}" {{ request('product_id') == $pro->id ? 'selected' : '' }}>
+                        {{ $pro->product_name }}
+                    </option>
+                @endforeach
+            </select>
+
+            <!-- Custom Range Dropdown -->
+            <select name="custom_range" class="form-select form-select-sm">
+                <option value="">Custom Range</option>
+                <option value="today" {{ request('custom_range') == 'today' ? 'selected' : '' }}>Today</option>
+                <option value="yesterday" {{ request('custom_range') == 'yesterday' ? 'selected' : '' }}>Yesterday</option>
+                <option value="last_7_days" {{ request('custom_range') == 'last_7_days' ? 'selected' : '' }}>Last 7 Days</option>
+                <option value="this_month" {{ request('custom_range') == 'this_month' ? 'selected' : '' }}>This Month</option>
+                <option value="last_month" {{ request('custom_range') == 'last_month' ? 'selected' : '' }}>Last Month</option>
+                <option value="last_6_months" {{ request('custom_range') == 'last_6_months' ? 'selected' : '' }}>Last 6 Months</option>
+            </select>
+
+            <input type="datetime-local" name="start_date" class="form-control form-control-sm"
+                value="{{ request('start_date') ? date('Y-m-d\TH:i', strtotime(request('start_date'))) : '' }}">
+            <input type="datetime-local" name="end_date" class="form-control form-control-sm"
+                value="{{ request('end_date') ? date('Y-m-d\TH:i', strtotime(request('end_date'))) : '' }}">
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-success btn-sm">Search</button>
+
+            <!-- Reset Button -->
+            <a href="{{ route('reports.employee-orders') }}" class="btn btn-secondary btn-sm">Reset</a>
+        </form>
     </div>
+
 
     <!-- Dashboard Cards -->
     <div class="row">
@@ -87,7 +110,7 @@
 
         <!-- Total Orders Card -->
         <div class="col-lg-2 col-md-3 col-sm-4 px-1">
-            <a href="{{ route('orders.index') }}" class="text-decoration-none text-dark">
+            <a href="{{ route('reports.employee-orders', request()->except('status')) }}" class="text-decoration-none text-dark">
                 <div class="card custom-card mb-2">
                     <div class="card-body p-2">
                         <div class="d-flex align-items-top">
@@ -109,7 +132,7 @@
         <!-- Status-wise Cards -->
         @foreach($statusCards as $status => $data)
             <div class="col-lg-2 col-md-3 col-sm-4 px-1">
-                <a href="{{ route('orders.index', ['status' => $status]) }}" class="text-decoration-none text-dark">
+                <a href="{{ route('reports.employee-orders', array_merge(request()->except('status'), ['status' => $status])) }}" class="text-decoration-none text-dark">
                     <div class="card custom-card mb-2">
                         <div class="card-body p-2">
                             <div class="d-flex align-items-top">
@@ -132,22 +155,7 @@
 
     <!-- Orders Table -->
     <div class="card custom-card">
-        <div class="card-header justify-content-between py-2">
-            <div class="card-title">Order List</div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-success-light btn-border-start btn-sm">
-                    <i class="ri-add-line fw-semibold align-middle me-1"></i> Create Order
-                </button>
-                <button type="button" id="sync-btn" class="btn btn-primary-light btn-border-start btn-sm">
-                    <i class="bx bxl-wordpress me-1"></i> Sync Now
-                </button>
-                <a href="#" class="btn btn-info-light btn-border-start btn-sm"
-                    onclick="return $('#storeId').val() ? (window.location='{{ route('wp.orders-live') }}?store_id='+$('#storeId').val()) : (alert('Please select a store first!'), $('#storeId').focus(), false);">
-                    <i class="bx bxl-wordpress me-1"></i> Live Order List
-                </a>
-            </div>
-        </div>
-        <div class="card-header justify-content-between py-2">
+        <div class="card-header justify-content-between">
             <div class="d-flex gap-2 align-items-center">
                 <select id="bulk-status" class="form-select form-select-sm" style="width: 160px;">
                     <option value="">Bulk Status Update</option>
@@ -169,7 +177,7 @@
             </div>
 
             <div class="d-flex gap-2 align-items-center">
-                <form method="GET" action="{{ route('orders.index') }}" class="d-flex gap-2 align-items-center" id="searchForm">
+                <form method="GET" action="{{ route('reports.employee-orders') }}" class="d-flex gap-2 align-items-center" id="searchForm">
                     @foreach(request()->except('search') as $key => $value)
                         <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                     @endforeach
@@ -185,8 +193,8 @@
                 <table class="table text-nowrap">
                     <thead class="table-primary">
                         <tr>
-                            <th style="width: 1%;"><input type="checkbox" id="checkAll"></th>
-                            <th style="width: 1%;">Order #</th>
+                            <th style="width: 1%"><input type="checkbox" id="checkAll"></th>
+                            <th style="width: 1%">Order #</th>
                             <th>Customer</th>
                             <th>Date</th>
                             <th>Total</th>

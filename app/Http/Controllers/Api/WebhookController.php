@@ -8,8 +8,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderAssign;
 use App\Models\Product;
 use App\Models\Store;
+use App\Models\User;
 use Carbon\Carbon;
 
 class WebhookController extends Controller
@@ -63,7 +65,7 @@ class WebhookController extends Controller
                 'email'         => $data['billing']['email'] ?? null,
                 'phone'         => $data['billing']['phone'] ?? null,
                 'total'         => $data['total'] ?? 0,
-                'source'        => 'Wordpress',
+                'source'        => 'WP Direct',
                 'shipping'      => $data['shipping'] ?? [],
                 'order_data'    => $data,
                 'status'        => 3,
@@ -95,6 +97,15 @@ class WebhookController extends Controller
                         'subtotal'   => $item['subtotal'] ?? 0,
                     ]);
                 }
+            }
+            // Assign to a random active employee
+            $randomEmployee = User::where('status', true)->inRandomOrder()->first();
+
+            if ($randomEmployee) {
+                OrderAssign::create([
+                    'order_id' => $order->id,
+                    'employee_id' => $randomEmployee->id,
+                ]);
             }
 
             DB::commit();

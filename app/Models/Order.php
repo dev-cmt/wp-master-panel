@@ -42,6 +42,10 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+    public function assigns()
+    {
+        return $this->hasMany(OrderAssign::class, 'order_id');
+    }
 
     /** 🔗 Many-to-Many: Orders ↔ Products (through order_items) */
     public function products()

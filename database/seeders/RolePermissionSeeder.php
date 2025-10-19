@@ -51,45 +51,57 @@ class RolePermissionSeeder extends Seeder
         }
 
         // -------------------------------
-        // 4️⃣ Create Roles
+        // 4️⃣ Add Single Custom Permission
+        // -------------------------------
+        $customPermissions = [
+            'view reports'
+        ];
+        foreach ($customPermissions as $perm) {
+            Permission::firstOrCreate(['name' => $perm]);
+            $permissions[] = $perm;
+        }
+
+        // -------------------------------
+        // 5️⃣ Create Roles
         // -------------------------------
         $superAdminRole = Role::firstOrCreate(['name' => 'superadmin']);
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
         $customerRole = Role::firstOrCreate(['name' => 'customer']);
 
         // -------------------------------
-        // 5️⃣ Assign Permissions
+        // 6️⃣ Assign Permissions
         // -------------------------------
-        $superAdminRole->syncPermissions($permissions); // Super Admin: all permissions
+        $superAdminRole->syncPermissions($permissions); // Superadmin: all permissions
         $adminRole->syncPermissions($permissions);      // Admin: all permissions
 
         // Customer: only view developer api & dashboard
         $customerPermissions = array_filter($permissions, function($p) {
-            return str_starts_with($p, 'view') && (str_contains($p, 'developer api') || str_contains($p, 'dashboard'));
+            return str_starts_with($p, 'view') &&
+                   (str_contains($p, 'developer api') || str_contains($p, 'dashboard'));
         });
         $customerRole->syncPermissions($customerPermissions);
 
         // -------------------------------
-        // 6️⃣ Assign Roles to Default Users
+        // 7️⃣ Assign Roles to Default Users
         // -------------------------------
         $superAdmin = User::firstOrCreate(
             ['email' => 'super@gmail.com'],
-            ['name' => 'Super Admin', 'password' => 'super12345']
+            ['name' => 'Super Admin', 'password' => Hash::make('super12345')]
         );
         $superAdmin->syncRoles([$superAdminRole]);
 
         $admin = User::firstOrCreate(
             ['email' => 'admin@gmail.com'],
-            ['name' => 'Admin User', 'password' => 'admin12345']
+            ['name' => 'Admin User', 'password' => Hash::make('admin12345')]
         );
         $admin->syncRoles([$adminRole]);
 
         $customer = User::firstOrCreate(
             ['email' => 'customer@gmail.com'],
-            ['name' => 'Customer User', 'password' => 'customer12345']
+            ['name' => 'Customer User', 'password' => Hash::make('customer12345')]
         );
         $customer->syncRoles([$customerRole]);
 
-        $this->command->info('✅ Roles & Permissions refreshed successfully!');
+        $this->command->info('✅ Roles, Permissions (including reports), and Users seeded successfully!');
     }
 }

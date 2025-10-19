@@ -28,6 +28,13 @@
                     <div class="card-body">
                         <div class="row mb-3">
                             <div class="col-md-12">
+                                <label for="company_name" class="form-label">Company Name</label>
+                                <input type="text" name="company_name" class="form-control" id="company_name"
+                                       value="{{ $settings ? $settings->company_name : '' }}">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
                                 <label for="email" class="form-label">Email</label>
                                 <input type="email" name="email" class="form-control" id="email"
                                        value="{{ $settings ? $settings->email : '' }}">
@@ -82,6 +89,6 @@
     </form>
 
     @push('js')
-        
+
     @endpush
 </x-backend-layout>

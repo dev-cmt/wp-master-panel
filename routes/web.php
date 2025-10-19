@@ -12,6 +12,7 @@ use App\Http\Controllers\DeveloperApiController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\WpOrderController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReportController;
 
 // Route::get('/', [HomeController::class, 'welcome'])->name('home');
 Route::get('/', [AdminController::class, 'dashboard'])->middleware(['auth', 'verified']);
@@ -38,8 +39,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::post('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
 
-    Route::get('/orders/{order}/download', [OrderController::class, 'download'])->name('orders.download'); // add
-    Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy'); // add
+    Route::get('/orders/{order}/download-invoice', [OrderController::class, 'downloadInvoice'])->name('orders.download-invoice');
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
+
+    Route::post('/orders/bulk-update-status', [OrderController::class, 'statusBulkUpdate'])->name('orders.bulk-update-status');
+    Route::post('/orders/bulk-orders-assign', [OrderController::class, 'orderBulkAssign'])->name('orders.bulk-orders-assign');
+    Route::post('/orders/bulk-orders-delete', [OrderController::class, 'orderBulkDelete'])->name('orders.bulk-orders-delete');
+    Route::get('/orders/bulk-print-invoice', [OrderController::class, 'printBulkInvoice'])->name('orders.bulk-print-invoice');
+    Route::get('/orders/bulk-print-label', [OrderController::class, 'printBulkLabel'])->name('orders.bulk-print-label');
 
     // WooComerce
     Route::get('/wp/orders-live', [OrderController::class, 'wpOrderLive'])->name('wp.orders-live');
@@ -50,6 +57,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/stores', [StoreController::class, 'store'])->name('stores.store');
     Route::post('/stores/update', [StoreController::class, 'update'])->name('stores.update');
     Route::delete('/stores/{id}', [StoreController::class, 'destroy'])->name('stores.destroy');
+
+    // Report
+    Route::get('/reports/employee-orders', [ReportController::class, 'employeeOrders'])->name('reports.employee-orders');
+    Route::get('/reports/orders-status-p', [ReportController::class, 'orderStatusP'])->name('reports.orders-status-product');
+    Route::get('/reports/orders-product', [ReportController::class, 'ordersProduct'])->name('reports.orders-product');
+
 
     /**----------------------------------------------------------------------------------------------
      * ----------------------------------------------------------------------------------------------

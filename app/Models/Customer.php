@@ -5,16 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Setting extends Model
+class Customer extends Model
 {
     use HasFactory;
 
+    // Mass assignable fields
     protected $fillable = [
-        'company_name',
-        'logo',
-        'favicon',
+        'name',
         'phone',
         'email',
         'address',
+        'city',
+        'state',
+        'postcode',
+        'country',
     ];
 }
