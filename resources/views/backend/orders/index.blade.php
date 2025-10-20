@@ -283,7 +283,8 @@
                                 </td>
                                 <td>
                                     <div class="hstack gap-2 fs-15">
-                                        <a href="{{ route('orders.download-invoice', $order->id) }}" target="_blank" class="btn btn-icon btn-sm btn-success-transparent rounded-pill"><i class="ri-download-2-line"></i></a>
+                                        <button data-id="{{$order->id}}" class="btn btn-icon btn-sm btn-success-transparent rounded-pill single-invoice"><i class="bx bx-printer"></i></button>
+                                        {{-- <a href="{{ route('orders.download-invoice', $order->id) }}" target="_blank" class="btn btn-icon btn-sm btn-success-transparent rounded-pill"><i class="ri-download-2-line"></i></a> --}}
                                         {{-- <a href="javascript:void(0);" class="btn btn-icon btn-sm btn-info-transparent rounded-pill"><i class="ri-edit-line"></i></a> --}}
                                         <form action="{{ route('orders.destroy', $order->id) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this order?');">
                                             @csrf
@@ -471,6 +472,24 @@
                     },
                     complete: function() {
                         $('#bulk-invoice').prop('disabled', false).text('Invoice Print');
+                    }
+                });
+            });
+            // Single Invoice Print (AJAX)
+            $('.single-invoice').on('click', function() {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: "{{ route('orders.bulk-print-invoice') }}",
+                    method: "GET",
+                    data: { order_ids: id },
+                    success: function(data) {
+                        const newWin = window.open("", "_blank");
+                        newWin.document.write(data);
+                        newWin.document.close();
+                    },
+                    error: function(xhr) {
+                        alert('Failed to generate invoice print. Please try again.');
+                        console.error(xhr.responseText);
                     }
                 });
             });
