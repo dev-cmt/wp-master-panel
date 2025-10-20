@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
 
+            $table->decimal('shipping_cost', 12, 2)->default(0);
             $table->decimal('total', 12, 2)->default(0);
             $table->decimal('paid', 12, 2)->default(0);
             $table->decimal('due', 12, 2)->default(0);

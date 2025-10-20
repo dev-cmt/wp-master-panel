@@ -135,16 +135,22 @@
         <div class="card-header justify-content-between py-2">
             <div class="card-title">Order List</div>
             <div class="d-flex gap-2">
-                <button class="btn btn-success-light btn-border-start btn-sm">
+                {{-- <button class="btn btn-success-light btn-border-start btn-sm">
                     <i class="ri-add-line fw-semibold align-middle me-1"></i> Create Order
-                </button>
+                </button> --}}
+
+                @can('view wp sync btn')
                 <button type="button" id="sync-btn" class="btn btn-primary-light btn-border-start btn-sm">
                     <i class="bx bxl-wordpress me-1"></i> Sync Now
                 </button>
+                @endcan
+
+                @can('view wp live btn')
                 <a href="#" class="btn btn-info-light btn-border-start btn-sm"
                     onclick="return $('#storeId').val() ? (window.location='{{ route('wp.orders-live') }}?store_id='+$('#storeId').val()) : (alert('Please select a store first!'), $('#storeId').focus(), false);">
                     <i class="bx bxl-wordpress me-1"></i> Live Order List
                 </a>
+                @endcan
             </div>
         </div>
         <div class="card-header justify-content-between py-2">
@@ -396,33 +402,81 @@
 
     <script>
         $(function() {
-            // Select all
+            // Select all checkbox
             $('#select-all').on('change', function() {
                 $('.order-checkbox').prop('checked', this.checked);
             });
 
-            // Collect selected IDs
+            // Collect selected order IDs
             function getSelectedOrders() {
                 return $('.order-checkbox:checked').map(function() {
                     return $(this).val();
                 }).get();
             }
 
-            // Label Print
+            // Bulk Label Print (AJAX)
             $('#bulk-label').on('click', function() {
                 const ids = getSelectedOrders();
-                if (ids.length === 0) return alert('Please select at least one order!');
-                window.open(`{{ route('orders.bulk-print-label') }}?order_ids=${ids.join(',')}`, '_blank');
+                if (ids.length === 0) {
+                    alert('Please select at least one order!');
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('orders.bulk-print-label') }}",
+                    method: "GET",
+                    data: { order_ids: ids },
+                    beforeSend: function() {
+                        $('#bulk-label').prop('disabled', true).text('Printing...');
+                    },
+                    success: function(data) {
+                        // open new tab/window and render the HTML/PDF
+                        const newWin = window.open("", "_blank");
+                        newWin.document.write(data);
+                        newWin.document.close();
+                    },
+                    error: function(xhr) {
+                        alert('Failed to generate label print. Please try again.');
+                        console.error(xhr.responseText);
+                    },
+                    complete: function() {
+                        $('#bulk-label').prop('disabled', false).text('Label Print');
+                    }
+                });
             });
 
-            // Invoice Print
+            // Bulk Invoice Print (AJAX)
             $('#bulk-invoice').on('click', function() {
                 const ids = getSelectedOrders();
-                if (ids.length === 0) return alert('Please select at least one order!');
-                window.open(`{{ route('orders.bulk-print-invoice') }}?order_ids=${ids.join(',')}`, '_blank');
+                if (ids.length === 0) {
+                    alert('Please select at least one order!');
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('orders.bulk-print-invoice') }}",
+                    method: "GET",
+                    data: { order_ids: ids },
+                    beforeSend: function() {
+                        $('#bulk-invoice').prop('disabled', true).text('Printing...');
+                    },
+                    success: function(data) {
+                        const newWin = window.open("", "_blank");
+                        newWin.document.write(data);
+                        newWin.document.close();
+                    },
+                    error: function(xhr) {
+                        alert('Failed to generate invoice print. Please try again.');
+                        console.error(xhr.responseText);
+                    },
+                    complete: function() {
+                        $('#bulk-invoice').prop('disabled', false).text('Invoice Print');
+                    }
+                });
             });
         });
     </script>
+
 
     @endpush
 

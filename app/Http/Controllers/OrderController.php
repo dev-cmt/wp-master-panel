@@ -138,23 +138,42 @@ class OrderController extends Controller
 
     public function printBulkInvoice(Request $request)
     {
-        $orderIds = explode(',', $request->query('order_ids'));
+        $orderIds = $request->input('order_ids', []);
+        if (is_string($orderIds)) {
+            $orderIds = explode(',', $orderIds);
+        }
+
         $orders = Order::with(['items.product'])->whereIn('id', $orderIds)->get();
 
         if ($orders->isEmpty()) {
-            return back()->with('error', 'No orders found for invoice printing.');
+            return response()->json(['error' => 'No orders found for invoice printing.'], 404);
         }
 
-        return view('backend.orders.bulk-invoice', compact('orders'));
+        // Render only the printable content (no layout)
+        $html = view('backend.orders.bulk-invoice', compact('orders'))->render();
+
+        return response($html);
     }
+
 
     public function printBulkLabel(Request $request)
     {
-        $orderIds = explode(',', $request->query('order_ids'));
+        $orderIds = $request->input('order_ids', []);
+        if (is_string($orderIds)) {
+            $orderIds = explode(',', $orderIds);
+        }
+
         $orders = Order::with(['items.product'])->whereIn('id', $orderIds)->get();
 
-        return view('backend.orders.bulk-label', compact('orders'));
+        if ($orders->isEmpty()) {
+            return response()->json(['error' => 'No orders found for label printing.'], 404);
+        }
+
+        $html = view('backend.orders.bulk-label', compact('orders'))->render();
+
+        return response($html);
     }
+
 
 
     /**-------------------------------------------------------------
@@ -273,6 +292,7 @@ class OrderController extends Controller
                             'email'         => $data['billing']['email'] ?? null,
                             'phone'         => $data['billing']['phone'] ?? null,
                             'total'         => $data['total'] ?? 0,
+                            'due'           => $data['total'] ?? 0,
                             'source'        => 'WP Direct',
                             'shipping'      => $data['shipping'] ?? [],
                             'order_data'    => $data,

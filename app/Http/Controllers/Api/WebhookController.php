@@ -65,6 +65,7 @@ class WebhookController extends Controller
                 'email'         => $data['billing']['email'] ?? null,
                 'phone'         => $data['billing']['phone'] ?? null,
                 'total'         => $data['total'] ?? 0,
+                'due'           => $data['total'] ?? 0,
                 'source'        => 'WP Direct',
                 'shipping'      => $data['shipping'] ?? [],
                 'order_data'    => $data,

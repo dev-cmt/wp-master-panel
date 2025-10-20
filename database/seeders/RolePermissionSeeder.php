@@ -29,13 +29,10 @@ class RolePermissionSeeder extends Seeder
         // 2️⃣ Define Modules
         // -------------------------------
         $modules = [
-            'packages',
-            'developer api',
-            'settings',
-            'seo',
+            'orders',
+            'stores',
             'users',
             'roles',
-            'dashboard',
         ];
 
         // -------------------------------
@@ -54,7 +51,13 @@ class RolePermissionSeeder extends Seeder
         // 4️⃣ Add Single Custom Permission
         // -------------------------------
         $customPermissions = [
-            'view reports'
+            'view dashboard',
+            'view wp sync btn',
+            'view wp live btn',
+            'view reports',
+            'view developer api',
+            'view seo pages',
+            'view settings',
         ];
         foreach ($customPermissions as $perm) {
             Permission::firstOrCreate(['name' => $perm]);

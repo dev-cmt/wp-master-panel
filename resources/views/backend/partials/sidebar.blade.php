@@ -27,6 +27,7 @@
             <ul class="main-menu">
 
                 <!-- Dashboard -->
+                @can('view dashboard')
                 <li class="slide">
                     <a href="{{ route('dashboard') }}"
                         class="side-menu__item {{ Request::is('dashboard') ? 'active' : '' }}">
@@ -34,8 +35,10 @@
                         <span class="side-menu__label">Dashboard</span>
                     </a>
                 </li>
+                @endcan
 
                 <!-- WP Orders -->
+                @can('view orders')
                 <li class="slide">
                     <a href="{{ route('orders.index') }}"
                         class="side-menu__item {{ Request::is('orders*') ? 'active' : '' }}">
@@ -43,8 +46,10 @@
                         <span class="side-menu__label">Orders</span>
                     </a>
                 </li>
+                @endcan
 
                 <!-- Store -->
+                @can('view stores')
                 <li class="slide">
                     <a href="{{ route('stores.index') }}"
                         class="side-menu__item {{ Request::is('stores*') ? 'active' : '' }}">
@@ -52,9 +57,10 @@
                         <span class="side-menu__label">Store</span>
                     </a>
                 </li>
+                @endcan
 
                 <!-- Report -->
-                @canany(['view reports'])
+                @can('view reports')
                 <li class="slide has-sub {{ Request::is('reports*') ? 'active open' : '' }}">
                     <a href="javascript:void(0);" class="side-menu__item {{ Request::is('reports*') ? 'active' : '' }}">
                         <i class="bx bxs-report side-menu__icon"></i>
@@ -79,9 +85,7 @@
                         </li>
                     </ul>
                 </li>
-                @endcanany
-
-
+                @endcan
 
 
 
@@ -100,9 +104,8 @@
                 </li>
                 @endcan
 
-
                 <!-- SEO Settings -->
-                @can('view seo none')
+                @can('view seo pages none')
                 <li class="slide">
                     <a href="{{ route('settings.seo.index') }}" class="side-menu__item {{ Request::is('seo-pages*') ? 'active' : '' }}">
                         <i class="bx bx-search-alt-2 side-menu__icon"></i>

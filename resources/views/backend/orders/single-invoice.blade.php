@@ -109,7 +109,7 @@
             <strong class="section-title">Bill To</strong><br>
             @php $shipping = is_array($order->shipping) ? (object)$order->shipping : (object)($order->shipping ?? []); @endphp
             {{ $shipping->first_name ?? $order->customer_name }} {{ $shipping->last_name ?? '' }}<br>
-            Phone: {{ $shipping->phone ?? $order->phone ?? 'N/A' }}<br>
+            Phone: {{ !empty($shipping->phone) ? $shipping->phone : $order->phone ?? 'N/A'}}<br>
             Email: {{ $shipping->email ?? $order->email ?? 'N/A' }}<br>
             Address: {{ $shipping->address_1 ?? $order->customer_address ?? 'N/A' }}<br>
             {{ $shipping->city ?? '' }} {{ $shipping->state ?? '' }} {{ $shipping->postcode ?? '' }} {{ $shipping->country ?? '' }}
